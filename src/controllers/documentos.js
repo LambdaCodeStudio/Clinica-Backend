@@ -1,6 +1,6 @@
 // src/controllers/documentos.js
 const mongoose = require('mongoose');
-const DocumentoTemplate = mongoose.model('DocumentoTemplate');
+const DocumentoTemplate = require('../models/documentoTemplate');
 const Documento = mongoose.model('Documento');
 const Paciente = require('../models/paciente');
 const User = require('../models/user');
