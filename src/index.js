@@ -1,3 +1,4 @@
+// src/index.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -8,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
+const crypto = require('crypto');
 const { 
   dosProtection, 
   sanitizeParams, 
@@ -20,6 +22,7 @@ const {
 } = require('./middleware/security');
 const corsOptions = require('./config/cors');
 const MongoStore = require('connect-mongo');
+const logger = require('./utils/logger');
 
 // Inicializar Express
 const app = express();
@@ -75,7 +78,7 @@ app.use(helmet({
 app.use(mongoSanitize({
   replaceWith: '_',
   onSanitize: ({ req, key }) => {
-    console.warn(`¡Intento de inyección NoSQL detectado! Se sanitizó el campo: ${key}`);
+    logger.warn(`¡Intento de inyección NoSQL detectado! Se sanitizó el campo: ${key}`);
   }
 }));
 
@@ -87,6 +90,9 @@ app.use(cacheControl);
 
 // Detección de contenido malicioso en solicitudes
 app.use(detectSuspiciousContent);
+
+// Directorio de uploads estático
+app.use('/uploads', express.static('src/uploads'));
 
 // Configuración de sesiones con MongoDB
 app.use(session({
@@ -186,6 +192,15 @@ app.get('/api/csrf-token', (req, res) => {
 
 // Rutas API
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/usuarios', require('./routes/usuarios'));
+app.use('/api/pacientes', require('./routes/pacientes'));
+app.use('/api/tratamientos', require('./routes/tratamientos'));
+app.use('/api/citas', require('./routes/citas'));
+app.use('/api/documentos', require('./routes/documentos'));
+app.use('/api/archivos', require('./routes/archivos'));
+app.use('/api/historias', require('./routes/historias'));
+app.use('/api/pagos', require('./routes/pagos'));
+app.use('/api/informes', require('./routes/informes'));
 
 // Middleware para errores 404
 app.use((req, res) => {
@@ -198,8 +213,8 @@ app.use((req, res) => {
 // Middleware para manejo de errores global
 app.use((err, req, res, next) => {
   // Registrar error con ID de petición para correlación
-  console.error(`Error [${req.requestId}]: ${err.message}`);
-  console.error(err.stack);
+  logger.error(`Error [${req.requestId}]: ${err.message}`);
+  logger.error(err.stack);
   
   // No exponer detalles de error en producción
   const status = err.status || 500;
@@ -219,22 +234,22 @@ process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
 function shutdown() {
-  console.log('Iniciando cierre controlado del servidor...');
+  logger.info('Iniciando cierre controlado del servidor...');
   
   // Dejar de aceptar nuevas conexiones
   server.close(() => {
-    console.log('Servidor HTTP cerrado.');
+    logger.info('Servidor HTTP cerrado.');
     
     // Cerrar conexión a la base de datos
     mongoose.connection.close(false, () => {
-      console.log('Conexión a MongoDB cerrada.');
+      logger.info('Conexión a MongoDB cerrada.');
       process.exit(0);
     });
   });
   
   // Si el cierre no ocurre en 10 segundos, forzar cierre
   setTimeout(() => {
-    console.error('No se pudo cerrar limpiamente, forzando cierre...');
+    logger.error('No se pudo cerrar limpiamente, forzando cierre...');
     process.exit(1);
   }, 10000);
 }
@@ -245,7 +260,7 @@ const PORT = process.env.PORT || 4000;
 let server;
 connectDB()
   .then(() => {
-    server = app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+    server = app.listen(PORT, () => logger.info(`Servidor en puerto ${PORT}`));
     
     // Configurar timeout del servidor
     server.timeout = 30000; // 30 segundos
@@ -255,6 +270,8 @@ connectDB()
     server.headersTimeout = 66000; // Ligeramente mayor que keepAliveTimeout
   })
   .catch(err => {
-    console.error('Error al iniciar servidor:', err);
+    logger.error('Error al iniciar servidor:', err);
     process.exit(1);
   });
+
+module.exports = app;
