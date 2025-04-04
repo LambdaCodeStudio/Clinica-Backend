@@ -1,0 +1,96 @@
+clinica-estetica/
+│
+├── frontend/                   # Aplicación frontend con Astro
+│   ├── public/                 # Archivos estáticos públicos
+│   │   ├── assets/            # Imágenes y recursos
+│   │   └── favicon.ico
+│   ├── src/
+│   │   ├── components/        # Componentes reutilizables
+│   │   │   ├── ui/            # Componentes de interfaz básicos
+│   │   │   ├── layout/        # Componentes de estructura
+│   │   │   ├── forms/         # Componentes de formularios
+│   │   │   ├── admin/         # Componentes para área administrativa
+│   │   │   ├── medicos/       # Componentes para área médica
+│   │   │   ├── pacientes/     # Componentes para área de pacientes
+│   │   │   └── firma/         # Componentes para firma digital
+│   │   ├── layouts/           # Diseños de página reutilizables
+│   │   ├── pages/             # Páginas de Astro
+│   │   │   ├── admin/         # Área de administración
+│   │   │   ├── medicos/       # Área para médicos
+│   │   │   ├── secretaria/    # Área para secretarias
+│   │   │   ├── pacientes/     # Área para pacientes
+│   │   │   ├── auth/          # Páginas de autenticación
+│   │   │   └── api/           # Endpoints de API para SSR
+│   │   ├── contexts/          # Contextos de React
+│   │   ├── hooks/             # Hooks personalizados
+│   │   ├── lib/               # Utilidades y funciones auxiliares
+│   │   └── services/          # Servicios para llamadas a API
+│   ├── astro.config.mjs       # Configuración de Astro
+│   ├── tailwind.config.cjs    # Configuración de Tailwind CSS
+│   ├── tsconfig.json          # Configuración de TypeScript
+│   └── package.json           # Dependencias del frontend
+│
+├── backend/                    # Aplicación backend con Node.js
+│   ├── src/
+│   │   ├── config/            # Configuraciones
+│   │   │   ├── db.js         # Conexión a MongoDB
+│   │   │   ├── cors.js       # Configuración CORS
+│   │   │   ├── storage.js    # Configuración de almacenamiento
+│   │   │   └── pdf.js        # Configuración para generación de PDFs
+│   │   ├── controllers/       # Controladores para las rutas
+│   │   │   ├── auth.js       # Controlador de autenticación
+│   │   │   ├── usuarios.js   # Gestión de usuarios
+│   │   │   ├── pacientes.js  # Gestión de pacientes
+│   │   │   ├── tratamientos.js # Gestión de tratamientos
+│   │   │   ├── citas.js      # Gestión de citas
+│   │   │   ├── documentos.js # Gestión de documentos y plantillas
+│   │   │   ├── archivos.js   # Gestión de archivos
+│   │   │   ├── historias.js  # Gestión de historias clínicas
+│   │   │   ├── pagos.js      # Gestión de pagos
+│   │   │   └── informes.js   # Generación de informes y métricas
+│   │   ├── middleware/        # Middlewares
+│   │   │   ├── auth.js       # Middleware de autenticación
+│   │   │   ├── security.js   # Middlewares de seguridad
+│   │   │   ├── upload.js     # Middleware para subida de archivos
+│   │   │   ├── validacion.js # Middleware de validación
+│   │   │   └── permisos.js   # Control de acceso basado en roles
+│   │   ├── models/            # Modelos de datos MongoDB
+│   │   │   ├── user.js       # Modelo de usuarios
+│   │   │   ├── paciente.js   # Modelo de pacientes
+│   │   │   ├── tratamiento.js # Modelo de tratamientos
+│   │   │   ├── cita.js       # Modelo de citas
+│   │   │   ├── historiaClinica.js # Modelo de historia clínica
+│   │   │   ├── documentoTemplate.js # Modelo de plantillas de documentos
+│   │   │   ├── documento.js  # Modelo de documentos
+│   │   │   ├── archivo.js    # Modelo de archivos
+│   │   │   └── pago.js       # Modelo de pagos
+│   │   ├── routes/            # Rutas de la API
+│   │   │   ├── auth.js       # Rutas de autenticación
+│   │   │   ├── usuarios.js   # Rutas de usuarios
+│   │   │   ├── pacientes.js  # Rutas de pacientes
+│   │   │   ├── tratamientos.js # Rutas de tratamientos
+│   │   │   ├── citas.js      # Rutas de citas
+│   │   │   ├── documentos.js # Rutas de documentos
+│   │   │   ├── archivos.js   # Rutas de archivos
+│   │   │   ├── historias.js  # Rutas de historias clínicas
+│   │   │   ├── pagos.js      # Rutas de pagos
+│   │   │   └── informes.js   # Rutas de informes y métricas
+│   │   ├── services/          # Servicios y lógica de negocio
+│   │   │   ├── pdf.js        # Servicio de generación de PDFs
+│   │   │   ├── email.js      # Servicio de envío de emails
+│   │   │   ├── sms.js        # Servicio de envío de SMS
+│   │   │   ├── estadisticas.js # Servicio de estadísticas y métricas
+│   │   │   ├── almacenamiento.js # Servicio de gestión de archivos
+│   │   │   └── firmaDigital.js # Servicio de firmas digitales
+│   │   ├── utils/             # Utilidades
+│   │   │   ├── errores.js    # Manejo de errores
+│   │   │   ├── validadores.js # Funciones de validación
+│   │   │   ├── formatters.js # Formateadores de datos
+│   │   │   └── logger.js     # Sistema de logging
+│   │   └── index.js           # Punto de entrada del servidor
+│   ├── .env                    # Variables de entorno
+│   ├── .env.example            # Ejemplo de variables de entorno
+│   └── package.json            # Dependencias del backend
+│
+├── README.md                   # Documentación del proyecto
+└── docker-compose.yml          # Configuración para desarrollo con Docker (opcional)
