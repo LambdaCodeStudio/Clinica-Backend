@@ -1,120 +1,71 @@
 // src/services/sms.js
-const twilio = require('twilio');
 
-/**
- * Servicio para el envío de SMS
- */
+// Determina si el servicio SMS está habilitado
+const smsEnabled = process.env.SMS_ENABLED === 'true';
+
 class SMSService {
   constructor() {
-    // Verificar si las credenciales están configuradas
-    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-      this.twilio = twilio(
-        process.env.TWILIO_ACCOUNT_SID,
-        process.env.TWILIO_AUTH_TOKEN
-      );
-      this.phoneNumber = process.env.TWILIO_PHONE_NUMBER;
-      this.enabled = true;
+    this.enabled = smsEnabled;
+    
+    if (this.enabled) {
+      try {
+        const twilio = require('twilio');
+        this.client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+      } catch (error) {
+        console.error("Error inicializando Twilio:", error);
+        this.enabled = false;
+      }
     } else {
-      console.warn('Credenciales de Twilio no configuradas. El servicio de SMS está deshabilitado.');
-      this.enabled = false;
+      console.log("Servicio SMS deshabilitado por configuración");
     }
   }
-  
-  /**
-   * Envía un mensaje SMS
-   * @param {String} to - Número de teléfono del destinatario
-   * @param {String} message - Contenido del mensaje
-   * @returns {Promise<Object>} - Información del envío
-   */
-  async enviarSMS(to, message) {
+
+  async sendSMS(to, message) {
+    if (!this.enabled) {
+      console.log(`📱 SMS simulado: Para: ${to}, Mensaje: ${message}`);
+      return {
+        success: true,
+        sid: "SIMULADO_" + Date.now(),
+        message: "Mensaje simulado (no enviado realmente)"
+      };
+    }
+    
     try {
-      if (!this.enabled) {
-        throw new Error('Servicio de SMS no configurado');
-      }
-      
-      // Validar número de teléfono
-      if (!this._validarTelefono(to)) {
-        throw new Error('Número de teléfono no válido');
-      }
-      
-      // Formatear teléfono si es necesario
-      const numeroFormateado = this._formatearTelefono(to);
-      
-      // Enviar SMS
-      const resultado = await this.twilio.messages.create({
+      const result = await this.client.messages.create({
         body: message,
-        from: this.phoneNumber,
-        to: numeroFormateado
+        to: to,
+        from: process.env.TWILIO_PHONE_NUMBER
       });
       
-      console.log('SMS enviado:', resultado.sid);
-      return resultado;
+      return {
+        success: true,
+        sid: result.sid,
+        message: "Mensaje enviado correctamente"
+      };
     } catch (error) {
-      console.error('Error al enviar SMS:', error);
-      throw error;
+      console.error("Error al enviar SMS:", error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
-  
-  /**
-   * Envía un recordatorio de cita por SMS
-   * @param {String} telefono - Número de teléfono del destinatario
-   * @param {String} nombre - Nombre del destinatario
-   * @param {Object} cita - Datos de la cita
-   * @returns {Promise<Object>} - Información del envío
-   */
-  async enviarRecordatorioCita(telefono, nombre, cita) {
-    try {
-      const fecha = new Date(cita.fechaInicio).toLocaleDateString('es-ES');
-      const hora = new Date(cita.fechaInicio).toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      
-      const mensaje = `Hola ${nombre}, recordatorio de tu cita en Clínica de Estética el ${fecha} a las ${hora}. Confirma al ${process.env.CLINICA_TELEFONO || '(123) 456-7890'}.`;
-      
-      return await this.enviarSMS(telefono, mensaje);
-    } catch (error) {
-      console.error('Error al enviar recordatorio por SMS:', error);
-      throw error;
-    }
+
+  async sendVerificationCode(to, code) {
+    const message = `Tu código de verificación es: ${code}`;
+    return this.sendSMS(to, message);
   }
-  
-  /**
-   * Valida un número de teléfono
-   * @param {String} telefono - Número de teléfono
-   * @returns {Boolean} - True si es válido
-   * @private
-   */
-  _validarTelefono(telefono) {
-    // Eliminar espacios, guiones, paréntesis, etc.
-    const numeroLimpio = telefono.replace(/\s+|\(|\)|\-/g, '');
-    
-    // Verificar que tenga al menos 10 dígitos
-    return /^\+?[0-9]{10,15}$/.test(numeroLimpio);
+
+  async sendAppointmentReminder(to, appointmentData) {
+    const { patientName, doctorName, date, time, location } = appointmentData;
+    const message = `Recordatorio: ${patientName}, tienes una cita con ${doctorName} el ${date} a las ${time} en ${location}.`;
+    return this.sendSMS(to, message);
   }
-  
-  /**
-   * Formatea un número de teléfono para Twilio
-   * @param {String} telefono - Número de teléfono
-   * @returns {String} - Número formateado
-   * @private
-   */
-  _formatearTelefono(telefono) {
-    // Eliminar espacios, guiones, paréntesis, etc.
-    let numeroLimpio = telefono.replace(/\s+|\(|\)|\-/g, '');
-    
-    // Asegurarse que tenga prefijo internacional
-    if (!numeroLimpio.startsWith('+')) {
-      // Asumir que es de Argentina si no tiene prefijo
-      numeroLimpio = `+54${numeroLimpio}`;
-      
-      // Si empieza con 0, quitarlo
-      if (numeroLimpio.charAt(3) === '0') {
-        numeroLimpio = `+54${numeroLimpio.substring(4)}`;
-      }
-    }
-    
-    return numeroLimpio;
+
+  async sendPasswordReset(to, resetToken) {
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const message = `Para restablecer tu contraseña, haz clic en el siguiente enlace: ${resetUrl}. El enlace expira en 1 hora.`;
+    return this.sendSMS(to, message);
   }
 }
 

@@ -17,12 +17,17 @@ const corsOptions = {
   allowedHeaders: [
     'Content-Type', 
     'Authorization', 
-    'X-Requested-With'
+    'X-Requested-With',
+    'X-CSRF-Token',
+    'X-Client-ID',
+    'Accept'
   ],
   exposedHeaders: [
     'Content-Range', 
     'X-Content-Range', 
-    'New-Authorization'
+    'New-Authorization',
+    'X-Request-ID',
+    'X-CSRF-Token'
   ],
   credentials: true,
   maxAge: 600, // 10 minutos
